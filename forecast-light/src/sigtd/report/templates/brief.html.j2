@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Model brief {{ as_of }}</title></head>
+<body>
+  <h1>Model brief: {{ as_of }}</h1>
+  <p><strong>Engine: benchmark + insurance sized by recession risk</strong></p>
+
+  <h2>Regime</h2>
+  <p>{{ regime_sentence }}</p>
+
+  <h2>Recession probability (12 months)</h2>
+  <p>{{ p_recession_pct }}%, calibrated out of sample since {{ oos_start }}.</p>
+
+  <h2>Proposed weights vs benchmark</h2>
+  {{ weights_table }}
+
+  <h2>Risk</h2>
+  {{ risk_table }}
+
+  <h2>What changed since last week</h2>
+  {{ changes }}
+</body>
+</html>

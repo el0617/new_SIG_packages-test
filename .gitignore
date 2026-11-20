@@ -1,0 +1,6 @@
+# Each package also has its own .gitignore; these cover the repo root.
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.DS_Store
