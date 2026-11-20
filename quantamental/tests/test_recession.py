@@ -7,10 +7,6 @@ import pytest
 from sigtd.probability.calibration import brier, brier_skill
 from sigtd.probability.recession import make_target, training_window
 
-pytestmark = pytest.mark.xfail(
-    raises=NotImplementedError, reason="Phase 4: recession model not written yet"
-)
-
 
 def test_target_looks_forward_twelve_months():
     idx = pd.date_range("2000-01-31", periods=30, freq="ME")

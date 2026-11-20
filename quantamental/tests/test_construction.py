@@ -9,10 +9,6 @@ from sigtd.portfolio.mode import BLACK_LITTERMAN, RISK_BUDGET, choose_mode
 from sigtd.portfolio.optimizer import optimize
 from sigtd.risk.tracking_error import tracking_error
 
-pytestmark = pytest.mark.xfail(
-    raises=NotImplementedError, reason="Phase 5: construction not written yet"
-)
-
 
 def _no_views(sectors):
     return (

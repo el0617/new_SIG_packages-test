@@ -1,0 +1,6 @@
+sector,direction,expected_rel_return_pp_12m,confidence_1to5,kill_trigger,source,owner
+energy,overweight,3.0,3,"WTI below $60 for two consecutive months",analyst,DEMO Analyst 5 (fictional)
+cons_staples,overweight,2.0,3,"ISM new orders above 55 for two consecutive months",analyst,DEMO Analyst 3 (fictional)
+financials,overweight,1.5,4,"10y-3m curve back below -25bp",analyst,DEMO Analyst 2 (fictional)
+info_tech,underweight,2.5,2,"Relative forward P/E back below its 10-year median",analyst,DEMO Analyst 4 (fictional)
+real_estate,underweight,2.0,3,"10-year real yield below 1.5%",analyst,DEMO Analyst 2 (fictional)

@@ -1,11 +1,8 @@
 """M1 acceptance: nothing is visible before it was published."""
 
 import pandas as pd
-import pytest
 
 from sigtd.data.panel import Panel
-
-pytestmark = pytest.mark.xfail(raises=NotImplementedError, reason="Phase 1: Panel not written yet")
 
 
 def _panel(vintages):

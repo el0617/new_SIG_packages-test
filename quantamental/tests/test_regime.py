@@ -1,12 +1,9 @@
 """M2 acceptance."""
 
 import pandas as pd
-import pytest
 
 from sigtd.regime.classifier import classify
 from sigtd.regime.spec_grid import spec_grid
-
-pytestmark = pytest.mark.xfail(raises=NotImplementedError, reason="Phase 2: regime not written yet")
 
 
 def test_band_turns_small_readings_into_transition():

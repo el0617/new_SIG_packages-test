@@ -25,40 +25,64 @@ mandate:
 sample:
   research_start: "1990-01-31"
   etf_start: "1999-01-31"
+  signal_start: "2001-01-31"  # first month with 12 months of ETF history plus a lag
   frequency: ME
 
 data:
   cache_dir: data/cache
+  raw_dir: data/raw          # FRED/Yahoo CSV cache; `make import-fall-cache` fills it from SIG_FALL_26
+  prices_file: prices_monthly.csv
   bloomberg_dir: data/bloomberg
   fred_api_key_env: FRED_API_KEY
+  market: SPY
+  # Research history before an ETF existed: first available ticker wins, month by month.
+  # Using SPY as the last resort gives that sector zero relative return (a documented limitation).
+  proxies:
+    real_estate: [XLRE, IYR, SPY]
+    comm_services: [XLC, SPY]
+  # IVV GICS sector weights on 2026-05-29 (fall repo data/portfolio.csv), held constant.
+  # Replace with the monthly Bloomberg history (data/bloomberg/sector_weights.csv) when you have it.
+  benchmark_fallback:
+    info_tech: 38.27
+    financials: 11.80
+    health_care: 9.69
+    cons_disc: 9.01
+    cons_staples: 4.74
+    energy: 3.72
+    industrials: 8.01
+    materials: 1.67
+    utilities: 1.97
+    real_estate: 1.71
+    comm_services: 9.40
 
-# Series registry. release_lag_days is the fallback rule before ALFRED vintages exist (approximate:
-# verify against the BLS / BEA / Fed release calendars). block = which composite it feeds.
+# Series registry. release_lag_days: days after the reference month-end until the number is public
+# (approximate; ALFRED vintages override it when present). agg: how daily/weekly data become monthly.
 series:
-  - {id: PAYEMS,   source: alfred, transform: ann3m, release_lag_days: 7,  block: growth}
-  - {id: INDPRO,   source: alfred, transform: ann3m, release_lag_days: 16, block: growth}
-  - {id: RRSFS,    source: alfred, transform: ann3m, release_lag_days: 15, block: growth}
-  - {id: ICSA,     source: fred,   transform: yoy_inv, release_lag_days: 5, block: growth}
-  - {id: NOCDFSA066MSFRBPHI, source: fred, transform: level, release_lag_days: 0, block: growth}
-  - {id: CPILFESL, source: alfred, transform: ann6m, release_lag_days: 12, block: inflation}
-  - {id: PCEPILFE, source: alfred, transform: ann6m, release_lag_days: 30, block: inflation}
-  - {id: T5YIFR,   source: fred,   transform: level, release_lag_days: 0,  block: inflation}
-  - {id: T10Y3M,   source: fred,   transform: level, release_lag_days: 0,  block: rates}
-  - {id: DFII10,   source: fred,   transform: level, release_lag_days: 0,  block: rates}
-  - {id: BAA10Y,   source: fred,   transform: level, release_lag_days: 0,  block: credit}
-  - {id: NFCI,     source: fred,   transform: level, release_lag_days: 5,  block: credit}
-  - {id: DTWEXBGS, source: fred,   transform: yoy,   release_lag_days: 0,  block: markets}
-  - {id: DCOILWTICO, source: fred, transform: yoy,   release_lag_days: 0,  block: markets}
-  - {id: PERMIT,   source: alfred, transform: yoy,   release_lag_days: 18, block: housing}
-  - {id: USREC,    source: fred,   transform: level, release_lag_days: 0,  block: target}
-  - {id: TB3MS,    source: fred,   transform: level, release_lag_days: 0,  block: cash}
+  - {id: PAYEMS,   source: alfred, transform: ann3m,   release_lag_days: 7,  agg: last, block: growth}
+  - {id: INDPRO,   source: alfred, transform: ann3m,   release_lag_days: 16, agg: last, block: growth}
+  - {id: RRSFS,    source: alfred, transform: ann3m,   release_lag_days: 15, agg: last, block: growth}
+  - {id: ICSA,     source: fred,   transform: yoy_inv, release_lag_days: 5,  agg: mean, block: growth}
+  - {id: NOCDFSA066MSFRBPHI, source: fred, transform: level, release_lag_days: 0, agg: last, block: growth}
+  - {id: CPILFESL, source: alfred, transform: ann6m,   release_lag_days: 12, agg: last, block: inflation}
+  - {id: PCEPILFE, source: alfred, transform: ann6m,   release_lag_days: 30, agg: last, block: inflation}
+  - {id: T5YIFR,   source: fred,   transform: level,   release_lag_days: 0,  agg: mean, block: inflation}
+  - {id: GS10,     source: fred,   transform: level,   release_lag_days: 1,  agg: last, block: rates}
+  - {id: TB3MS,    source: fred,   transform: level,   release_lag_days: 1,  agg: last, block: rates}
+  - {id: BAA,      source: fred,   transform: level,   release_lag_days: 1,  agg: last, block: credit}
+  - {id: NFCI,     source: fred,   transform: level,   release_lag_days: 5,  agg: mean, block: credit}
+  - {id: DTWEXBGS, source: fred,   transform: yoy,     release_lag_days: 0,  agg: mean, block: markets}
+  - {id: DCOILWTICO, source: fred, transform: yoy,     release_lag_days: 0,  agg: mean, block: markets}
+  - {id: VIXCLS,   source: fred,   transform: level,   release_lag_days: 0,  agg: mean, block: markets}
+  - {id: PERMIT,   source: alfred, transform: yoy,     release_lag_days: 18, agg: last, block: housing}
+  - {id: USREC,    source: fred,   transform: level,   release_lag_days: 0,  agg: last, block: target}
 
 regime:
   window_months: 120
   smooth_months: 3
   band: 0.15
   sticky: true
-  inflation_anchor: {core_cpi: 2.4, core_pce: 2.0}
+  min_periods: 60
+  inflation_anchor: {CPILFESL: 2.4, PCEPILFE: 2.0}
   grid:                     # the share of these specs agreeing is the reported regime
     window_months: [120, 180, expanding]
     smooth_months: [1, 3, 6]
@@ -67,9 +91,10 @@ recession:
   horizon_months: 12
   embargo_months: 24        # NBER dates recessions late: never train on labels newer than this
   train_start: "1985-01-31"
-  features: [T10Y3M, credit_spread, claims_26w_change]
+  oos_start: "1995-01-31"
+  features: [term_spread, credit_spread, claims_6m_change]
 
-# Forecast-light engine. In the quantamental repo this is the fallback ("risk-budget mode").
+# Forecast-light engine. In this repo it is the fallback ("risk-budget mode").
 insurance:
   bets:
     defensive: [cons_staples, utilities, health_care]
@@ -89,16 +114,23 @@ risk:
     gfc: ["2008-09-30", "2009-02-28"]
     covid: ["2020-02-29", "2020-03-31"]
     rate_shock_2022: ["2022-01-31", "2022-12-31"]
+  factor_shocks:            # applied through M3 betas (units of each factor's monthly change)
+    "10y yield +100bp": {d_10y: 1.0}
+    "Oil +30%": {oil: 0.30}
+    "Credit spread +200bp": {d_credit: 2.0}
+    "Growth composite -1 sd": {growth: -1.0}
 
 backtest:
-  start: "2005-01-31"
+  start: "2006-01-31"
+  signal_ic_prior: 0.03     # pre-registered IC used to size signal views in the backtest (no look-ahead)
+  signal_confidence: 2
 
 sensitivities:
   factors: [d_10y, d_slope, oil, dollar, d_credit, growth, d_breakeven]
   hac_lags: 3
   rolling_months: 36
 
-signals:                    # pre-registered in docs/prereg/m4_signals.md: do not add after results
+signals:                    # pre-registered in docs/prereg/signals.md: do not add after results
   momentum_12_1: {prior: strong}
   revision_breadth: {prior: medium, smooth_months: 3}
   relative_valuation: {prior: weak, history_months: 120}
@@ -106,14 +138,17 @@ signals:                    # pre-registered in docs/prereg/m4_signals.md: do no
   macro_tilt: {prior: weak}
   horizon_months: 1
   composite: equal_weight
+  view_threshold_z: 1.0     # only sectors with |composite z| >= this get a signal view
   evidence_to_confidence:   # scorecard verdict -> Black-Litterman confidence (1-5)
     oos_value: 4
     weak: 2
     none: 0                 # no view: sector stays at benchmark
 
 similarity:                 # Man Group-style analog regimes, used as a cross-check on M2
-  variables: [SP500_yoy, T10Y3M, oil_yoy, copper_yoy, DGS10_chg, VIX, unemployment_chg]
+  # Available in the free cache; the paper also uses copper and unemployment (add when you have them)
+  variables: [market_12m, term_spread, oil_yoy, gs10_12m_change, vix, claims_yoy, nfci]
   quantile: 0.2
+  exclude_recent_months: 36
 
 black_litterman:
   delta: 2.5
@@ -123,3 +158,4 @@ black_litterman:
 
 views:
   sheet: views/view_sheet.csv
+  demo_sheet: views/view_sheet_demo.csv   # fictional views used when no real sheet exists

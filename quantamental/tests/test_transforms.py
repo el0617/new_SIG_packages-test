@@ -6,10 +6,6 @@ import pytest
 
 from sigtd.features.transforms import ann3m, zscore_expanding
 
-pytestmark = pytest.mark.xfail(
-    raises=NotImplementedError, reason="Phase 1: transforms not written yet"
-)
-
 
 def test_ann3m_matches_hand_calculation():
     s = pd.Series(

@@ -9,10 +9,6 @@ from sigtd.signals.evaluate import ic_summary, rank_ic
 from sigtd.signals.library import momentum_12_1
 from sigtd.signals.power import min_detectable_corr, min_detectable_ic
 
-pytestmark = pytest.mark.xfail(
-    raises=NotImplementedError, reason="Phase 3: signals not written yet"
-)
-
 
 def test_single_spread_needs_a_large_correlation():
     assert min_detectable_corr(111) == pytest.approx(0.236, abs=0.002)

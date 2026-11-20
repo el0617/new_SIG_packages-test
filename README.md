@@ -14,6 +14,10 @@ self-contained Python package (`sigtd`) with its own config, Makefile, docs and 
 
 Read each folder's `README.md`, then `src/sigtd/pipeline.py`: it shows the whole weekly run.
 
+> **Branch `demo/quantamental-runnable`** contains a working reference implementation of
+> `quantamental/` that runs end to end on the fall repo's data cache (`make import-fall-cache && make demo`),
+> with sample briefs in `quantamental/examples/`. `main` keeps the stubs for your own build.
+
 ## Status
 
 Scaffolds. Infrastructure is written (config, CLI, pipeline wiring, fixtures, CI, docs). Model logic

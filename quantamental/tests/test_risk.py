@@ -7,10 +7,6 @@ from sigtd.portfolio.insurance import bet_vector
 from sigtd.portfolio.risk_budget import scale_to_te, te_target
 from sigtd.risk.tracking_error import contributions, tracking_error
 
-pytestmark = pytest.mark.xfail(
-    raises=NotImplementedError, reason="Phases 5-6: risk budget and TE not written yet"
-)
-
 DEFENSIVE = ["cons_staples", "utilities", "health_care"]
 
 

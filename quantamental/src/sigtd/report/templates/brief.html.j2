@@ -1,29 +1,95 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><title>Model brief {{ as_of }}</title></head>
+<head>
+<meta charset="utf-8">
+<title>SIG model brief {{ as_of }}</title>
+<style>
+  body { font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; max-width: 860px;
+         margin: 32px auto; padding: 0 20px; color: #1f2328; line-height: 1.45; }
+  h1 { font-size: 24px; margin-bottom: 4px; }
+  h2 { font-size: 17px; margin-top: 32px; border-bottom: 1px solid #d0d7de; padding-bottom: 4px; }
+  .meta { color: #59636e; font-size: 13px; }
+  .mode { display: inline-block; padding: 4px 10px; border-radius: 6px; font-weight: 600;
+          background: #ddf4ff; color: #0550ae; margin: 10px 0; }
+  .mode.rb { background: #fff8c5; color: #7d4e00; }
+  .demo { background: #ffebe9; color: #82071e; padding: 8px 12px; border-radius: 6px; font-size: 14px; }
+  .lead { font-size: 15px; }
+  table { border-collapse: collapse; font-size: 13px; margin: 8px 0; }
+  th, td { padding: 4px 10px; border-bottom: 1px solid #eaeef2; text-align: right; }
+  th:first-child, td:first-child { text-align: left; }
+  thead th { background: #f6f8fa; }
+  img { max-width: 100%; }
+  .note { color: #59636e; font-size: 12.5px; }
+  .ok { color: #1a7f37; } .bad { color: #cf222e; }
+</style>
+</head>
 <body>
-  <h1>Model brief: {{ as_of }}</h1>
-  <p><strong>Mode: {{ mode }}</strong></p>
+<h1>SIG model brief: {{ as_of }}</h1>
+<div class="meta">Returns through {{ returns_through }} · macro data as published by {{ as_of }} · portfolio ${{ aum }}</div>
 
-  <h2>Regime</h2>
-  <p>{{ regime_sentence }}</p>
+{% if demo_views %}
+<p class="demo"><strong>Demo views.</strong> No analyst view sheet was found, so this brief uses the
+fictional views in <code>views/view_sheet_demo.csv</code>. They are illustrations, not research.</p>
+{% endif %}
 
-  <h2>Recession probability (12 months)</h2>
-  <p>{{ p_recession_pct }}%, calibrated out of sample since {{ oos_start }}.</p>
+<div class="mode {{ 'rb' if mode == 'risk_budget' else '' }}">Engine mode: {{ mode_label }}</div>
+<p class="lead">{{ headline }}</p>
 
-  <h2>Signal scorecard</h2>
-  {{ scorecard_table }}
+<h2>1. Proposed weights</h2>
+<img src="data:image/png;base64,{{ chart_active }}" alt="Active weights">
+{{ weights_table | safe }}
+<p class="note">$ columns are the position vs benchmark on a ${{ aum }} portfolio.</p>
 
-  <h2>Views and their effect</h2>
-  {{ attribution_table }}
+<h2>2. Macro state</h2>
+<p>{{ regime_sentence }}</p>
+{{ regime_table | safe }}
+<p>{{ recession_sentence }}</p>
+<img src="data:image/png;base64,{{ chart_recession }}" alt="Recession probability">
+<p class="note">{{ recession_scores }}</p>
+<p><strong>Scenario priors for the analysts' matrix:</strong></p>
+{{ scenario_table | safe }}
+<p><strong>Analog check (months whose economy looked most like today):</strong> average next-12-month
+relative return, annualized %. Use as a sanity check on views, not as a signal.</p>
+{{ analog_table | safe }}
 
-  <h2>Proposed weights vs benchmark</h2>
-  {{ weights_table }}
+<h2>3. Evidence: signal scorecard (frozen by <code>make research</code>)</h2>
+<p>{{ scorecard_sentence }}</p>
+{{ scorecard_table | safe }}
+<p class="note">A signal needs a positive mean IC with Holm-adjusted p &lt; 0.05 for "oos_value" (confidence 4),
+or t ≥ 1 for "weak" (confidence 2). The power threshold is the smallest IC this sample could reliably detect.</p>
 
-  <h2>Risk</h2>
-  {{ risk_table }}
+<h2>4. Views and what they did</h2>
+{% if views_table %}
+{{ views_table | safe }}
+{% else %}<p>No views.</p>{% endif %}
+{% if attribution_table %}
+<p><strong>Leave-one-view-out:</strong> how much each view moved the portfolio.</p>
+{{ attribution_table | safe }}
+{% endif %}
 
-  <h2>What changed since last week</h2>
-  {{ changes }}
+<h2>5. Risk</h2>
+{{ risk_table | safe }}
+<img src="data:image/png;base64,{{ chart_contrib }}" alt="Tracking-error contributions">
+<p><strong>Policy checks:</strong>
+{% for k, v in checks.items() %}<span class="{{ 'ok' if v else 'bad' }}">{{ '✓' if v else '✗' }} {{ k }}</span>{{ " · " if not loop.last }}{% endfor %}</p>
+<p><strong>Historical replays</strong> (today's weights through past episodes):</p>
+{{ stress_table | safe }}
+<p><strong>Factor shocks</strong> (through sector betas):</p>
+{{ shock_table | safe }}
+
+{% if backtest_table %}
+<h2>6. Backtest of the systematic engines</h2>
+<img src="data:image/png;base64,{{ chart_backtest }}" alt="Backtest">
+{{ backtest_table | safe }}
+<p class="note">Analyst views cannot be backtested; only the systematic engines are tested here.</p>
+{% endif %}
+
+<h2>Limitations to say out loud</h2>
+<ul class="note">
+  <li>Macro data use publication-lag rules, not ALFRED vintages, so revisions are not modelled.</li>
+  <li>Benchmark weights are held at their 2026 values; sector history before an ETF existed uses proxies (IYR, SPY).</li>
+  <li>Revision and valuation signals need Bloomberg exports and are skipped without them.</li>
+  <li>Four US recessions since 1985 is a small sample for any recession model.</li>
+</ul>
 </body>
 </html>

@@ -1,12 +1,6 @@
 """M7 acceptance: the backtest is provably point-in-time."""
 
-import pytest
-
 from sigtd.risk.backtest import walk_forward
-
-pytestmark = pytest.mark.xfail(
-    raises=NotImplementedError, reason="Phase 6: backtest not written yet"
-)
 
 
 def test_engine_never_sees_future(cfg, panel, benchmark):

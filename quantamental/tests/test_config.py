@@ -15,7 +15,7 @@ def test_limits_are_present(cfg):
 
 def test_registry_is_valid(cfg):
     reg = load_registry(cfg)
-    assert {"PAYEMS", "CPILFESL", "T10Y3M", "USREC"} <= set(reg.index)
+    assert {"PAYEMS", "CPILFESL", "GS10", "TB3MS", "USREC"} <= set(reg.index)
     assert (reg["release_lag_days"] >= 0).all()
 
 

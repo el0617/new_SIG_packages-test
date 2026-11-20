@@ -1,12 +1,11 @@
-"""Implied equilibrium returns: what the benchmark weights 'believe'."""
+"""Implied equilibrium returns: what the benchmark weights 'believe' (annual units)."""
 
 from __future__ import annotations
 
 import pandas as pd
 
-TODO = "Phase 5 (M6): write reverse optimization"
-
 
 def implied_returns(cov: pd.DataFrame, benchmark: pd.Series, delta: float) -> pd.Series:
-    """pi = delta * Sigma @ w_benchmark."""
-    raise NotImplementedError(TODO)
+    """pi = delta * Sigma_annual @ w_benchmark, with Sigma_annual = 12 x monthly covariance."""
+    b = benchmark.reindex(cov.index)
+    return (delta * 12 * cov @ b).rename("pi")
