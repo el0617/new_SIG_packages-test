@@ -1,0 +1,94 @@
+# Every model parameter lives here. Change it here, then log the change in research_log.md.
+
+mandate:
+  # TODO(confirm with the faculty advisor before Week 1): size, instruments, benchmark.
+  aum_usd: 60000
+  benchmark: sp500_sector_weights
+  instruments:              # sector key -> ETF actually traded
+    info_tech: XLK          # the fall portfolio held VGT: confirm
+    financials: XLF
+    health_care: XLV
+    cons_disc: XLY
+    cons_staples: XLP
+    energy: XLE
+    industrials: XLI
+    materials: XLB
+    utilities: XLU
+    real_estate: XLRE       # the fall portfolio held SCHH: confirm
+    comm_services: XLC
+  limits:
+    active_weight_pp: 5.0   # |w - b| per sector, percentage points
+    long_only: true
+    max_cash_pct: 5.0
+    te_budget: [0.02, 0.04] # ex-ante tracking error, annualized
+
+sample:
+  research_start: "1990-01-31"
+  etf_start: "1999-01-31"
+  frequency: ME
+
+data:
+  cache_dir: data/cache
+  bloomberg_dir: data/bloomberg
+  fred_api_key_env: FRED_API_KEY
+
+# Series registry. release_lag_days is the fallback rule before ALFRED vintages exist (approximate:
+# verify against the BLS / BEA / Fed release calendars). block = which composite it feeds.
+series:
+  - {id: PAYEMS,   source: alfred, transform: ann3m, release_lag_days: 7,  block: growth}
+  - {id: INDPRO,   source: alfred, transform: ann3m, release_lag_days: 16, block: growth}
+  - {id: RRSFS,    source: alfred, transform: ann3m, release_lag_days: 15, block: growth}
+  - {id: ICSA,     source: fred,   transform: yoy_inv, release_lag_days: 5, block: growth}
+  - {id: NOCDFSA066MSFRBPHI, source: fred, transform: level, release_lag_days: 0, block: growth}
+  - {id: CPILFESL, source: alfred, transform: ann6m, release_lag_days: 12, block: inflation}
+  - {id: PCEPILFE, source: alfred, transform: ann6m, release_lag_days: 30, block: inflation}
+  - {id: T5YIFR,   source: fred,   transform: level, release_lag_days: 0,  block: inflation}
+  - {id: T10Y3M,   source: fred,   transform: level, release_lag_days: 0,  block: rates}
+  - {id: DFII10,   source: fred,   transform: level, release_lag_days: 0,  block: rates}
+  - {id: BAA10Y,   source: fred,   transform: level, release_lag_days: 0,  block: credit}
+  - {id: NFCI,     source: fred,   transform: level, release_lag_days: 5,  block: credit}
+  - {id: DTWEXBGS, source: fred,   transform: yoy,   release_lag_days: 0,  block: markets}
+  - {id: DCOILWTICO, source: fred, transform: yoy,   release_lag_days: 0,  block: markets}
+  - {id: PERMIT,   source: alfred, transform: yoy,   release_lag_days: 18, block: housing}
+  - {id: USREC,    source: fred,   transform: level, release_lag_days: 0,  block: target}
+  - {id: TB3MS,    source: fred,   transform: level, release_lag_days: 0,  block: cash}
+
+regime:
+  window_months: 120
+  smooth_months: 3
+  band: 0.15
+  sticky: true
+  inflation_anchor: {core_cpi: 2.4, core_pce: 2.0}
+  grid:                     # the share of these specs agreeing is the reported regime
+    window_months: [120, 180, expanding]
+    smooth_months: [1, 3, 6]
+
+recession:
+  horizon_months: 12
+  embargo_months: 24        # NBER dates recessions late: never train on labels newer than this
+  train_start: "1985-01-31"
+  features: [T10Y3M, credit_spread, claims_26w_change]
+
+# Forecast-light engine. In the quantamental repo this is the fallback ("risk-budget mode").
+insurance:
+  bets:
+    defensive: [cons_staples, utilities, health_care]
+  funding: market_pro_rata  # fund from every other sector in proportion to benchmark weight
+  te_min: 0.010             # tracking error spent when recession risk is low
+  te_max: 0.035             # ... and when it is high
+  p_low: 0.15               # recession probability at or below which te_min applies
+  p_high: 0.50              # at or above which te_max applies
+
+risk:
+  cov_months: 60
+  cov_alt_months: [36, 96]
+  var_level: 0.95
+  var_horizon_months: 3
+  cost_bp_one_way: 5
+  historical_windows:
+    gfc: ["2008-09-30", "2009-02-28"]
+    covid: ["2020-02-29", "2020-03-31"]
+    rate_shock_2022: ["2022-01-31", "2022-12-31"]
+
+backtest:
+  start: "2005-01-31"

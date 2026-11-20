@@ -1,0 +1,19 @@
+# environments and caches
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# data: rebuilt by `make data`, never committed
+data/cache/
+data/raw/
+*.parquet
+
+# licensed Bloomberg exports stay on your machine (the pre-commit hook also blocks them)
+data/bloomberg/*.csv
+data/bloomberg/*.xlsx
+
+# generated
+reports/
+outputs/*.png

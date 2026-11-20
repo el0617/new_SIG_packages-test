@@ -1,0 +1,13 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
+    hooks:
+      - id: ruff
+      - id: ruff-format
+  - repo: local
+    hooks:
+      - id: block-licensed-data
+        name: block licensed Bloomberg data
+        entry: Licensed Bloomberg exports must not be committed
+        language: fail
+        files: ^(forecast-light|quantamental)/data/bloomberg/.*\.(csv|xlsx|parquet)$
